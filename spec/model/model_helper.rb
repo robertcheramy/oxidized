@@ -30,16 +30,8 @@ class MockSsh
 
   # We have to interpolate ourselves as yaml block scalars do not interpolate anything
   def interpolate_yaml(text)
-    # Replace \x<int> with its char
-    text.gsub!(/\\x(\h+)/) do
-      digit = Regexp.last_match(1)
-      digit.to_i(16).chr
-    end
-    text.gsub!('\n', "\n")
-    text.gsub!('\r', "\r")
-    text.gsub!('\e', "\e")
-    # Last, replace \\ with \. We use gsub instead of gsub! to return the final text
-    text.gsub('\\\\', '\\')
+    # we just add double quote and undump the result
+    "\"#{text}\"".undump
   end
 
   def exec!(cmd)
