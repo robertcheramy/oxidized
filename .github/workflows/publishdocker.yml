@@ -15,8 +15,8 @@ jobs:
           images: |
             robertcheramy/oxidized
           tags: |
-            type=semver, pattern={{version}}
-            type=sha, prefix="master-"
+            type=semver,pattern={{version}}
+            type=sha,prefix=master-
           flavor: |
             latest=true
       - name: Login to Docker Hub
