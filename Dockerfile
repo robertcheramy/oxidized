@@ -24,6 +24,8 @@ RUN gem install x25519 --no-document
 COPY . /tmp/oxidized/
 WORKDIR /tmp/oxidized
 
+RUN find .
+
 # docker automated build gets shallow copy, but non-shallow copy cannot be unshallowed
 RUN git fetch --unshallow || true
 
