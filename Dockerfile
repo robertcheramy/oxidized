@@ -29,9 +29,9 @@ COPY extra/auto-reload-config.runit /etc/service/auto-reload-config/run
 COPY extra/update-ca-certificates.runit /etc/service/update-ca-certificates/run
 
 # set up dependencies for the build process
-RUN apt-get -yq update \
-    && apt-get -yq upgrade \
-    && apt-get -yq --no-install-recommends install ruby \
+RUN apt-get -qy update \
+    && apt-get -qy upgrade \
+    && apt-get -qy --no-install-recommends install ruby \
     # Build process of oxidized from git (beloww)
     git \
     # Allow git send-email from docker image
@@ -70,12 +70,16 @@ COPY . /tmp/oxidized/
 WORKDIR /tmp/oxidized
 
 # Install gems which needs a build environment
-RUN apt-get -q update && \
-    apt-get -qy install build-essential git ruby-dev && \
-    # X25519 (a.k.a. Curve25519) Elliptic Curve Diffie-Hellman
+RUN apt-get -qy update && \
+    apt-get -qy install --no-install-recommends \
+                        build-essential git ruby-dev && \
+    ##### X25519 (a.k.a. Curve25519) Elliptic Curve Diffie-Hellman
     gem install x25519 && \
-    # build & install oxidized from the working repository
+    ##### build & install oxidized from the working repository
+    # docker automated build gets shallow copy, but non-shallow copy cannot be unshallowed
+    git fetch --unshallow || true && \
     rake install && \
+    # remove the packages we do not need.
     apt-get -qy remove build-essential git ruby-dev && \
     apt-get -qy autoremove && \
     apt-get clean && \
