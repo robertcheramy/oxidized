@@ -4,11 +4,11 @@ on:
     branches: [ "master" ]
     tags: [ "[0-9]+.[0-9]+.[0-9]+" ]
 env:
-  REGISTRY_IMAGE: oxidized/oxidized
+  REGISTRY_IMAGE: robertcheramy/oxidized
 
 jobs:
   build:
-    if: github.repository_owner == 'ytti'
+    if: github.repository_owner == 'robertcheramy'
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
