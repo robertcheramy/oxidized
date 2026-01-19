@@ -31,7 +31,7 @@ module Oxidized
       @telnet && (not @telnet.sock.closed?)
     end
 
-    def cmd(cmd_str, expect = @node.prompt)
+    def cmd(cmd_str, expect = @node.prompt, **_kwargs)
       logger.debug "Telnet: #{cmd_str} @#{@node.name}"
       return send(cmd_str + "\r\n") unless expect
 

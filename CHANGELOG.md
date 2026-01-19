@@ -5,10 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+The SCP gem is now an optional dependency as it will rarely be used - you'll have to install it if you need it. It is still included in the docker image.
 
 ### Added
 - String refinements: introduce `keep_lines` and `reject_lines` methods (@robertcheramy)
 - Support for storing configurations only on significant changes (@robertcheramy)
+- Support SCP downloads within SSH input (@robertcheramy)
+- apcos model with SSH + SSH capabilities (@robertcheramy)
 
 ### Changed
 - Refactored models: Use `keep_lines` and `reject_lines` in aosw, arubainstant, asa, efos, firelinuxos, fsos, ironware, mlnxos and perle to (@robertcheramy)

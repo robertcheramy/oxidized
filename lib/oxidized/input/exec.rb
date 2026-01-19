@@ -6,7 +6,7 @@ module Oxidized
       @node.model.cfg["exec"].each { |cb| instance_exec(&cb) }
     end
 
-    def cmd(cmd_str)
+    def cmd(cmd_str, **_kwargs)
       logger.debug "EXEC: #{cmd_str} @ #{@node.name}"
       # I'd really like to do popen3 with separate arguments, but that would
       # require refactoring cmd to take parameters

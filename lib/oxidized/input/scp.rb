@@ -1,6 +1,10 @@
 module Oxidized
   require 'net/ssh'
-  require 'net/scp'
+  begin
+    require 'net/scp'
+  rescue LoadError
+    raise OxidizedError, 'net/scp not found: sudo gem install net-scp'
+  end
   require 'timeout'
   require_relative 'sshbase'
 
@@ -13,7 +17,7 @@ module Oxidized
       super.merge(RESCUE_FAIL)
     end
 
-    def cmd(file)
+    def cmd(file, **_kwargs)
       logger.debug "SCP: #{file} @ #{@node.name}"
       Timeout.timeout(@node.timeout) do
         @ssh.scp.download!(file)

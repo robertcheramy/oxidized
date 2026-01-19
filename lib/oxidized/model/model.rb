@@ -160,9 +160,13 @@ module Oxidized
 
     attr_accessor :input, :node
 
-    def cmd(string, &block)
+    def cmd(string, input: nil, &block)
       logger.debug "Executing #{string}"
-      out = @input.cmd(string)
+      out = if input
+              @input.cmd(string, input: input)
+            else
+              @input.cmd(string)
+            end
       return false unless out
 
       out = out.b unless Oxidized.config.input.utf8_encoded?
@@ -255,7 +259,7 @@ module Oxidized
 
         next if args.include?(:if) && !instance_exec(&args[:if])
 
-        out = cmd command, &block
+        out = cmd command, input: args[:input], &block
         return false unless out
 
         outputs << out

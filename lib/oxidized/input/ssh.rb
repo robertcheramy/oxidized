@@ -5,9 +5,16 @@ module Oxidized
   require_relative 'sshbase'
 
   class SSH < SSHBase
+    begin
+      require 'net/scp'
+    rescue LoadError
+      logger.debug "Optional net/scp is not installed"
+    end
+
     class NoShell < OxidizedError; end
 
     RESCUE_FAIL = {
+      LoadError    => :error,
       RuntimeError => :warn
     }.freeze
 
@@ -39,19 +46,25 @@ module Oxidized
       connected?
     end
 
-    def cmd(cmd, expect = node.prompt)
+    def cmd(cmd, expect = node.prompt, input: nil, **_kwargs)
       logger.debug "Sending '#{cmd.dump}' @ #{node.name} with expect: #{expect.inspect}"
       if Oxidized.config.input.debug?
         @log.puts "sent cmd #{@exec ? cmd.dump : (cmd + newline).dump}"
         @log.flush
       end
-      cmd_output = if @exec
-                     @ssh.exec! cmd
-                   else
-                     cmd_shell(cmd, expect).gsub("\r\n", "\n")
-                   end
+      output = if input == :scp
+                 unless defined?(Net::SCP)
+                   raise LoadError, "Net::SCP is required for SCP input " \
+                                    "but is not installed"
+                 end
+                 @ssh.scp.download!(cmd)
+               elsif @exec
+                 @ssh.exec! cmd
+               else
+                 cmd_shell(cmd, expect).gsub("\r\n", "\n")
+               end
       # Make sure we return a String
-      cmd_output.to_s
+      output.to_s
     end
 
     def send(data)

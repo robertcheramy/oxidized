@@ -27,7 +27,7 @@ module Oxidized
       login
     end
 
-    def cmd(callback_or_string)
+    def cmd(callback_or_string, **_kwargs)
       return cmd_cb callback_or_string if callback_or_string.is_a?(Proc)
 
       cmd_str callback_or_string

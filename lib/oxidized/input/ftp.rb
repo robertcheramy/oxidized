@@ -16,7 +16,7 @@ module Oxidized
       @ftp && (not @ftp.closed?)
     end
 
-    def cmd(file)
+    def cmd(file, **_kwargs)
       logger.debug "FTP: #{file} @ #{@node.name}"
       @ftp.getbinaryfile file, nil
     end
