@@ -20,21 +20,23 @@ describe 'Model apc_aos' do
     Oxidized::SSH.any_instance.stubs(:connect_cli).returns(true)
     Oxidized::SSH.any_instance.stubs(:disconnect).returns(true)
     Oxidized::SSH.any_instance.stubs(:disconnect_cli).returns(true)
-    Oxidized::SSH.any_instance.expects(:cmd)
-                 .with("about").returns("about result\n")
-    Oxidized::SSH.any_instance.expects(:cmd)
-                 .with("upsabout").returns("upsabout result\n")
-    Oxidized::SSH.any_instance.expects(:cmd)
-                 .with("detstatus -ss")
-                 .returns("detstatus -ss result\n")
+    model = YAML.load_file('spec/model/data/apcos#SMT750IC_v2.5.0.8#custom_simulation.yaml')
+
+    commands = ["about", "upsabout", "detstatus -ss"]
+    commands.each do |c|
+      c_result = model['commands']["#{c}\n"]
+      c_result = "\"#{c_result}\"".undump
+      Oxidized::SSH.any_instance.expects(:cmd)
+                   .with(c).returns(c_result)
+    end
     Oxidized::SSH.any_instance.expects(:cmd)
                  .with("config.ini", input: :scp)
-                 .returns("config.ini content\n")
+                 .returns(model['commands']['config.ini'])
 
     status, result = @node.run
 
+    output = File.read('spec/model/data/apcos#SMT750IC_v2.5.0.8#custom_output.txt')
     _(status).must_equal :success
-    _(result.to_cfg).must_equal "; about result\n; upsabout result\n" \
-                                "; detstatus -ss result\nconfig.ini content\n"
+    _(result.to_cfg).must_equal output
   end
 end
