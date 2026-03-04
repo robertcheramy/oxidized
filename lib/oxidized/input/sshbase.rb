@@ -98,10 +98,6 @@ module Oxidized
       @log.close if Oxidized.config.input.debug?
     end
 
-    def config_name
-      self.class.name.split('::').last.downcase
-    end
-
     # Methods to implement in subclasses
     def cmd(**_args)
       raise NotImplementedError, "Subclasses must implement cmd"

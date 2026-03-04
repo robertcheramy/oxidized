@@ -1,5 +1,6 @@
 class Apc_aos < Oxidized::Model # rubocop:disable Naming/ClassAndModuleCamelCase
   using Refinements
+  logger.warn "Apc_aos is deprecated, use ApcAos instead."
 
   comment '; '
 

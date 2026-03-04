@@ -62,8 +62,8 @@ describe 'Model apc_aos' do
                                username: 'alma',
                                password: 'armud',
                                prompt:   'test_prompt')
-    Oxidized::Node.logger.expects(:error)
-                  .with("No suitable input found for example.com")
+    Apc_aos.logger.expects(:error)
+           .with("Needs one of [:ftp, :scp] to be configured")
 
     status, = @node.run
 

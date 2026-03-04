@@ -25,6 +25,8 @@ module Oxidized
           klass.instance_variable_set '@comment', nil
           klass.instance_variable_set '@prompt',  nil
           klass.instance_variable_set '@metadata', {}
+          klass.instance_variable_set '@inputs', nil
+
         else # we're subclassing some existing model, take its variables
           instance_variables.each do |var|
             iv = instance_variable_get(var)
@@ -58,11 +60,41 @@ module Oxidized
         @cfg
       end
 
+      # Store a command to be run against the device
+      # cmd_arg can be:
+      #  - a string (the command to be run)
+      #  - a symbol
+      #    - :all    - run the block against each command output
+      #    - :secret - run the block against each command output when
+      #                vars :remove_secret is true
+      #    - :significant_changes - use the block to remove unsignificant
+      #                changes
+      # Optional arguments (**args):
+      # - clear: true - replace all the stored blocks for this command
+      #                 (monkey patching)
+      # - prepend: true - prepend the block to the stored blocks for this
+      #                   command (monkey patching)
+      # - if: lambda - run the command only if the lambda evals to true
+      # - input: symbol or array of symbols: for the inputs this command is to
+      #        run against (default - run every command)
       def cmd(cmd_arg = nil, **args, &block)
         if cmd_arg.instance_of?(Symbol)
           process_args_block(@cmd[cmd_arg], args, block)
         else
-          # Normal command
+          if args.include?(:if) && !(args[:if].is_a?(Proc) && args[:if].lambda?)
+            logger.error "cmd #{cmd_arg.dump}: if must be a lambda"
+            return
+          end
+
+          if args.include?(:input)
+            unless [Symbol, Array].include?(args[:input].class)
+              logger.error "cmd #{cmd_arg.dump}: input must be a symbol or an array of symbols"
+              return
+            end
+            # Always use an array
+            args[:input] = Array(args[:input])
+          end
+
           process_args_block(@cmd[:cmd], args,
                              { cmd: cmd_arg, args: args, block: block })
         end
@@ -133,6 +165,57 @@ module Oxidized
         process_args_block(@procs[:post], args, block)
       end
 
+      # Define multiple inputs as a sequence of equivalent options
+      # Example: use ssh or telnet, then scp or ftp:
+      # [:ssh, [:scp, :ftp]]
+      def inputs(list = nil)
+        return @inputs if list.nil?
+
+        message = "inputs must be an array containing symbols or " \
+                  "arrays of symbols"
+
+        raise ArgumentError, message unless list.is_a? Array
+        raise ArgumentError, message if list.empty?
+
+        list.each do |group|
+          case group
+          when Symbol
+            # Everything is fine
+          when Array
+            raise ArgumentError, message if group.empty?
+
+            group.each do |input|
+              raise ArgumentError, message unless input.is_a? Symbol
+            end
+          else
+            raise ArgumentError, message
+          end
+        end
+
+        @inputs = list
+      end
+
+      # Returns the input sequence for the model as an array of arrays of input
+      # classes, filtered and ordered according to the provided +input_classes+
+      # (as specified in the oxidized configuration file).
+      # Raises OxidizedError if a required input was not activated in the
+      # oxidized configuration file.
+      def input_sequence(input_classes)
+        model_inputs = inputs || [
+          @cfg.filter_map do |input, block_list|
+            input.to_sym unless block_list.empty?
+          end
+        ]
+
+        model_inputs.map do |sequence|
+          sequence = [sequence] unless sequence.is_a? Array
+          selected = input_classes.select { |input| sequence.include?(input.to_sym) }
+          logger.error "Needs one of #{sequence.inspect} to be configured" if selected.empty?
+
+          selected
+        end
+      end
+
       # @author Saku Ytti <saku@ytti.fi>
       # @since 0.0.39
       # @return [Hash] hash proc procs :pre+:post to be prepended/postfixed to output
@@ -160,12 +243,15 @@ module Oxidized
 
     attr_accessor :input, :node
 
+    # input specifies to run this command only with this input type
+    # if input is not specified, always run the command
     def cmd(string, input: nil, &block)
       logger.debug "Executing #{string}"
-      out = if input
-              @input.cmd(string, input: input)
+      out = if input.nil? || input.include?(@input.to_sym)
+              out = @input.cmd(string)
             else
-              @input.cmd(string)
+              # Do not run this command
+              return ""
             end
       return false unless out
 
@@ -249,6 +335,7 @@ module Oxidized
       data
     end
 
+    # Get the commands from the model
     def get
       logger.debug 'Collecting commands\' outputs'
       outputs = Outputs.new

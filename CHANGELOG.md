@@ -10,8 +10,8 @@ The SCP gem is now an optional dependency as it will rarely be used - you'll hav
 ### Added
 - String refinements: introduce `keep_lines` and `reject_lines` methods (@robertcheramy)
 - Support for storing configurations only on significant changes (@robertcheramy)
-- Support SCP downloads within SSH input (@robertcheramy)
-- apcos model with SSH + SSH capabilities (@robertcheramy)
+- Support multiple input (@robertcheramy)
+- apcaos model with SSH + SSH capabilities, deprecates apc_aos (@robertcheramy)
 
 ### Changed
 - Refactored models: Use `keep_lines` and `reject_lines` in aosw, arubainstant, asa, efos, firelinuxos, fsos, ironware, mlnxos and perle to (@robertcheramy)
