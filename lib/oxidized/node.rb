@@ -67,7 +67,6 @@ module Oxidized
           break
         end
       end
-      # TODO: is fail logged in caller function?
 
       @model.input = nil
       [status, config]
