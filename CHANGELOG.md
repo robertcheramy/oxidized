@@ -5,11 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+The fortios model has been split into fortigate and fortios. You need the new
+fortigate model for FortiGate firewalls. Be sure to check the
+[Fortinet model notes](docs/Model-Notes/Fortinet.md) before upgrading.
+
 The SCP gem is now an optional dependency as it will rarely be used - you'll have to install it if you need it. It is still included in the docker image.
 
 ### Added
 - String refinements: introduce `keep_lines` and `reject_lines` methods (@robertcheramy)
 - Support for storing configurations only on significant changes (@robertcheramy)
+- Add support for Ivanti Secure Connect ISA models (@candleflip)
+- smartbyte: new model for SmartByte switches (@freddy36)
 - Support multiple input (@robertcheramy)
 - apcaos model with SSH + SSH capabilities, deprecates apc_aos (@robertcheramy)
 
@@ -17,12 +23,21 @@ The SCP gem is now an optional dependency as it will rarely be used - you'll hav
 - Refactored models: Use `keep_lines` and `reject_lines` in aosw, arubainstant, asa, efos, firelinuxos, fsos, ironware, mlnxos and perle to (@robertcheramy)
 - Refactor SSH and SCP into a common class SSHBase. Fixes #3597 (@robertcheramy)
 - Modified models to support store mode on significant changes: ios, fortios, perle (@robertcheramy)
+- fortios: model rewrite and split into fortios and fortigate. Fixes #3680 (@robertcheramy)
+- fortigate: Add PSU & SFP inventory (@robertcheramy)
+- fortigate: move var fortios_autoupdate (deprecated) to fortigate_autoupdate (@robertcheramy)
+- netgear: extended login and pager detection to add support for GS728TPv2 and GS752TPv2 (@weberc)
 
 ### Fixed
+- VyOS: Only remove SNMP community, not route-maps. Fixes #3735 (@systeembeheerder)
 - apc_aos: set comment to "; " to match comments in config.ini (@robertcheramy)
 - h3c: fix overly permissive prompt regexp causing false matches. Fixes #3673 (@robertcheramy)
 - extra/device2yaml.rb: fix \r being removed at end of line (@robertcheramy)
 - perle: remove trailing \r (the device sends \r\r\n) (@robertcheramy)
+- Reintroduce support for Ruby 3.0. Fixes #3688 (@robertcheramy)
+- githubrepo: fix authentication with ssh-agent not working. Fixes #3420 (@robertcheramy)
+- fastiron: adjust prompt to account for stacks, remove time from stack output. Fixes #3106 (@ManoftheSea)
+- interval: fix fetching device configuration at oxidized start when interval is 0. Fixes #3746 (@tgr229)
 
 
 ## [0.35.0 - 2025-12-04]
