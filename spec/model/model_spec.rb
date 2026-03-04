@@ -70,8 +70,6 @@ class TestModelWithInputs < Oxidized::Model
   using Refinements
 
   inputs [:ssh, %i[scp ftp]]
-  cfg :ssh, :scp, :ftp do
-  end
 end
 
 describe 'Oxidized::Model' do

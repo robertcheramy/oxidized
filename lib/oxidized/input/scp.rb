@@ -17,7 +17,7 @@ module Oxidized
       super.merge(RESCUE_FAIL)
     end
 
-    def cmd(file, **_kwargs)
+    def cmd(file)
       logger.debug "SCP: #{file} @ #{@node.name}"
       Timeout.timeout(@node.timeout) do
         @ssh.scp.download!(file)

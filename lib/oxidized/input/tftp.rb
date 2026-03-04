@@ -24,7 +24,7 @@ module Oxidized
       @tftp = Net::TFTP.new @node.ip
     end
 
-    def cmd(file, **_kwargs)
+    def cmd(file)
       logger.debug "TFTP: #{file} @ #{@node.name}"
       config = StringIO.new
       @tftp.getbinary file, config
