@@ -23,20 +23,10 @@ module Oxidized
         if cmd_arg.instance_of?(Symbol)
           process_args_block(@cmd[cmd_arg], args, block)
         else
-          if args.include?(:if) && !(args[:if].is_a?(Proc) && args[:if].lambda?)
-            logger.error "cmd #{cmd_arg.dump}: if must be a lambda"
-            return
-          end
+          return unless valid_cmd_args?(cmd_arg, args)
 
-          if args.include?(:input)
-            unless [Symbol, Array].include?(args[:input].class)
-              logger.error "cmd #{cmd_arg.dump}: input must be a symbol or an array of symbols"
-              return
-            end
-            # Always use an array
-            args[:input] = Array(args[:input])
-          end
-
+          # Always use an array for :input
+          args[:input] = Array(args[:input]) if args.include?(:input)
           process_args_block(@cmd[:cmd], args,
                              { cmd: cmd_arg, args: args, block: block })
         end
@@ -87,6 +77,20 @@ module Oxidized
           method = args[:prepend] ? :unshift : :push
           target.send(method, block)
         end
+      end
+
+      def valid_cmd_args?(cmd_arg, args)
+        if args.include?(:if) && !(args[:if].is_a?(Proc) && args[:if].lambda?)
+          logger.error "cmd #{cmd_arg.dump}: if must be a lambda"
+          return false
+        end
+
+        if args.include?(:input) && ![Symbol, Array].include?(args[:input].class)
+          logger.error "cmd #{cmd_arg.dump}: input must be a symbol or an array of symbols"
+          return false
+        end
+
+        true
       end
     end
   end
