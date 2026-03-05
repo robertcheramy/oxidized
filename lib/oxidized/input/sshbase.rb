@@ -1,5 +1,6 @@
 module Oxidized
   require 'net/ssh'
+  require 'net/ssh/proxy/command'
   require 'timeout'
 
   class SSHBase < Input
