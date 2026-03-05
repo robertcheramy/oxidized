@@ -1,6 +1,7 @@
 require 'strscan'
 require_relative 'outputs'
-require_relative 'helpers/inputs'
+require_relative 'dslsetup'
+require_relative 'dslcommands'
 
 module Oxidized
   class Model
@@ -8,8 +9,11 @@ module Oxidized
 
     using Refinements
 
+    # Domain Specific Language for models
+    extend Oxidized::Model::DSLSetup
+    extend Oxidized::Model::DSLCommands
+
     include Oxidized::Config::Vars
-    extend Oxidized::Model::Inputs
 
     # rubocop:disable Style/FormatStringToken
     METADATA_DEFAULT = "%{comment}Fetched by Oxidized with model %{model} " \
@@ -35,159 +39,6 @@ module Oxidized
             klass.instance_variable_set var, iv.dup
             @cmd[:cmd] = iv[:cmd].dup if var.to_s == "@cmd"
           end
-        end
-      end
-
-      def comment(str = "# ")
-        @comment = if block_given?
-                     yield
-                   elsif not @comment
-                     str
-                   else
-                     @comment
-                   end
-      end
-
-      def prompt(regex = nil)
-        @prompt = regex || @prompt
-      end
-
-      def cfg(*methods, **args, &block)
-        [methods].flatten.each do |method|
-          process_args_block(@cfg[method.to_s], args, block)
-        end
-      end
-
-      def cfgs
-        @cfg
-      end
-
-      # Store a command to be run against the device
-      # cmd_arg can be:
-      #  - a string (the command to be run)
-      #  - a symbol
-      #    - :all    - run the block against each command output
-      #    - :secret - run the block against each command output when
-      #                vars :remove_secret is true
-      #    - :significant_changes - use the block to remove unsignificant
-      #                changes
-      # Optional arguments (**args):
-      # - clear: true - replace all the stored blocks for this command
-      #                 (monkey patching)
-      # - prepend: true - prepend the block to the stored blocks for this
-      #                   command (monkey patching)
-      # - if: lambda - run the command only if the lambda evals to true
-      # - input: symbol or array of symbols: for the inputs this command is to
-      #        run against (default - run every command)
-      def cmd(cmd_arg = nil, **args, &block)
-        if cmd_arg.instance_of?(Symbol)
-          process_args_block(@cmd[cmd_arg], args, block)
-        else
-          if args.include?(:if) && !(args[:if].is_a?(Proc) && args[:if].lambda?)
-            logger.error "cmd #{cmd_arg.dump}: if must be a lambda"
-            return
-          end
-
-          if args.include?(:input)
-            unless [Symbol, Array].include?(args[:input].class)
-              logger.error "cmd #{cmd_arg.dump}: input must be a symbol or an array of symbols"
-              return
-            end
-            # Always use an array
-            args[:input] = Array(args[:input])
-          end
-
-          process_args_block(@cmd[:cmd], args,
-                             { cmd: cmd_arg, args: args, block: block })
-        end
-        logger.debug "Added #{cmd_arg} to the commands list"
-      end
-
-      def metadata(position, value = nil, &block)
-        return unless %i[top bottom].include? position
-
-        if block_given?
-          @metadata[position] = block
-        else
-          @metadata[position] = value
-        end
-      end
-
-      def cmds
-        @cmd
-      end
-
-      def expect(regex, **args, &block)
-        process_args_block(@expect, args, [regex, block])
-      end
-
-      def expects
-        @expect
-      end
-
-      def clean(what)
-        case what
-        when :escape_codes
-          ansi_escape_regex = /
-            \r?        # Optional carriage return at start
-            \e         # ESC character - starts escape sequence
-            (?:        # Non-capturing group for different sequence types:
-              # Type 1: CSI (Control Sequence Introducer)
-              \[       # Literal '[' - starts CSI sequence
-              [0-?]*   # Parameter bytes: digits (0-9), semicolon, colon, etc.
-              [ -\/]*  # Intermediate bytes: space through slash characters
-              [@-~]    # Final byte: determines the actual command
-            |          # OR
-              # Type 2: Simple escape
-              [=>]     # Single character commands after ESC
-            )
-            \r?        # Optional carriage return at end
-          /x
-          expect ansi_escape_regex do |data, re|
-            data.gsub re, ''
-          end
-        end
-      end
-
-      # calls the block at the end of the model, prepending the output of the
-      # block to the output string
-      #
-      # @yield expects block which should return [String]
-      # @return [void]
-      def pre(**args, &block)
-        process_args_block(@procs[:pre], args, block)
-      end
-
-      # calls the block at the end of the model, adding the output of the block
-      # to the output string
-      #
-      # @yield expects block which should return [String]
-      # @return [void]
-      def post(**args, &block)
-        process_args_block(@procs[:post], args, block)
-      end
-
-      # @author Saku Ytti <saku@ytti.fi>
-      # @since 0.0.39
-      # @return [Hash] hash proc procs :pre+:post to be prepended/postfixed to output
-      attr_reader :procs
-
-      private
-
-      def process_args_block(target, args, block)
-        if args[:clear]
-          if block.instance_of?(Array)
-            target.reject! { |k, _| k == block[0] }
-            target.push(block)
-          elsif block.instance_of?(Hash)
-            target.reject! { |item| item[:cmd] == block[:cmd] }
-            target.push(block)
-          else
-            target.replace([block])
-          end
-        else
-          method = args[:prepend] ? :unshift : :push
-          target.send(method, block)
         end
       end
     end
