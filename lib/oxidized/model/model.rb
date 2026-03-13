@@ -53,7 +53,7 @@ module Oxidized
               out = @input.cmd(string)
             else
               # Do not run this command
-              return ""
+              return ''
             end
       return false unless out
 

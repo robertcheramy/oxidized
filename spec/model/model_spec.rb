@@ -255,13 +255,13 @@ describe 'Oxidized::Model' do
       ]
     end
 
-    it 'ignores configured inputs with empty config' do
+    it 'ignores cfgs["input"] with a empty hash' do
       input_classes = [Oxidized::SSH, Oxidized::HTTP]
 
       model = Class.new(TestModel)
       cfgs = model.cfgs
       _(cfgs.count).must_equal 2
-      # just accessing cfgs["http"] creates an key/value pair
+      # just accessing cfgs["http"] creates an empty hash
       _(cfgs["http"]).must_equal []
       _(cfgs.count).must_equal 3
 
@@ -365,8 +365,9 @@ describe 'Oxidized::Model' do
 
         model.stubs(:vars).returns(nil)
         model.stubs(:vars).with('metadata').returns(true)
-        model.stubs(:vars).with('metadata_top').returns("%{comment}Top from vars model %{model}\n") # rubocop:disable Style/FormatStringToken
-
+        # rubocop:disable Style/FormatStringToken
+        model.stubs(:vars).with('metadata_top').returns("%{comment}Top from vars model %{model}\n")
+        # rubocop:enable Style/FormatStringToken
         result = model.get.to_cfg
         _(result).must_equal(
           "// Top from vars model TestModelNoMetadata\n" \

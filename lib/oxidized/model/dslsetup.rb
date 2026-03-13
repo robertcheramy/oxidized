@@ -47,8 +47,6 @@ module Oxidized
       # Returns the input sequence for the model as an array of arrays of input
       # classes, filtered and ordered according to the provided +input_classes+
       # (as specified in the oxidized configuration file).
-      # Raises OxidizedError if a required input was not activated in the
-      # oxidized configuration file.
       def input_sequence(input_classes)
         model_inputs = inputs || [
           @cfg.filter_map do |input, block_list|

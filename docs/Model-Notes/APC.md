@@ -7,8 +7,8 @@ APC OS does not have the ability to display the config.ini within an SSH shell.
 A ticket was opened with APC support to enable "cat config.ini"
 within an SSH shell, but APC declined to implement this feature.
 
-To overcome this limitation, a capability to run SCP within an SSH connection
-has been implemented in Oxidized and in the model ApcAos.
+To overcome this limitation, a capability to run against multiple inputs (SSH + SCP)
+has been implemented in Oxidized and in the [model ApcAos](/lib/oxidized/model/apcaos.rb).
 
 The old model apc_aos (SCP/FTP only) is deprecated and will be removed in a
 future release. Migrate to ApcAos.
@@ -18,7 +18,7 @@ To download the configuration with FTP or SCP, you must activate it
 as an input in the Oxidized configuration. If you don't activate the input,
 Oxidized will fail for the node with an error.
 
-You probably also need to increase the default timeout so something about 60
+You probably also need to increase the default timeout to something about 60
 seconds, as the APC are really slow, and need about 30 seconds to complete.
 
 The configuration can be done either globally or only for the ApcAos model.
@@ -67,3 +67,6 @@ modifications, so that it can be uploaded to the device.
 
 Outputs from ssh are stored without CR, so the first part of the file is
 without CR and config.ini with CR + LF.
+
+This is expected behavior and should not affect the functionality of the backup
+or restore process.

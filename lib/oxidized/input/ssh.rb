@@ -43,13 +43,13 @@ module Oxidized
         @log.puts "sent cmd #{@exec ? cmd.dump : (cmd + newline).dump}"
         @log.flush
       end
-      output = if @exec
-                 @ssh.exec! cmd
-               else
-                 cmd_shell(cmd, expect).gsub("\r\n", "\n")
-               end
+      cmd_output = if @exec
+                     @ssh.exec! cmd
+                   else
+                     cmd_shell(cmd, expect).gsub("\r\n", "\n")
+                   end
       # Make sure we return a String
-      output.to_s
+      cmd_output.to_s
     end
 
     def send(data)
